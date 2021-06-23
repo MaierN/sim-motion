@@ -1,6 +1,7 @@
 #pragma once
 
 #define _USE_MATH_DEFINES
+
 #include <cmath>
 #include <random>
 #include <vector>
@@ -36,8 +37,8 @@ class Robot {
     double linear_speed;
     double angular_speed;
 
-    std::vector<double> speeds_left;
-    std::vector<double> speeds_right;
+    std::vector<double> speeds_center;
+    std::vector<double> omega;
     std::vector<double> angles;
 
     double next_lidar_angle;
@@ -51,8 +52,8 @@ class Robot {
           radius(20),
           linear_speed(300),
           angular_speed(25),
-          speeds_left(),
-          speeds_right(),
+          speeds_center(),
+          omega(),
           angles(),
           next_lidar_angle(0),
           last_pos(pos),

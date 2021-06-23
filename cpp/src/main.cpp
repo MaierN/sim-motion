@@ -1,5 +1,10 @@
-#include <SDL.h>
+#define HAVE_M_PI
+#define _USE_MATH_DEFINES
 
+//#include <SDL.h>
+
+#include <SFML/Graphics.hpp>
+#include <cmath>
 #include <iostream>
 
 #include "Config.h"
@@ -7,7 +12,67 @@
 #include "Robot.hpp"
 #include "Vector2.hpp"
 
-int main(int argc, char** argv) {
+static std::vector<double> integrate_cumul(std::vector<double> v, double dt) {
+    std::vector<double> res;
+    double cumul = 0;
+    for (size_t i = 0; i < v.size(); i++) {
+        res.push_back(cumul);
+        cumul += v[i] * dt;
+    };
+    return res;
+}
+
+static std::vector<double> vec_sin(std::vector<double> v) {
+    std::vector<double> res;
+    for (size_t i = 0; i < v.size(); i++) res.push_back(sin(v[i]));
+    return res;
+}
+
+static std::vector<double> vec_cos(std::vector<double> v) {
+    std::vector<double> res;
+    for (size_t i = 0; i < v.size(); i++) res.push_back(cos(v[i]));
+    return res;
+}
+
+static std::vector<double> vec_mul(std::vector<double> v1, std::vector<double> v2) {
+    std::vector<double> res;
+    for (size_t i = 0; i < v1.size(); i++) res.push_back(v1[i] * v2[i]);
+    return res;
+}
+
+int main() {
+    std::cout << "ffffffffff" << std::endl;
+    // create the window
+    sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
+
+    // run the program as long as the window is open
+    while (window.isOpen())
+    {
+        // check all the window's events that were triggered since the last iteration of the loop
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            // "close requested" event: we close the window
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        // clear the window with black color
+        window.clear(sf::Color::Black);
+
+        // draw everything here...
+        // window.draw(...);
+
+        // end the current frame
+        window.display();
+    }
+
+    std::cout << "alskjdflaksdjfalksd" << std::endl;
+
+    return 0;
+}
+
+/*int main2(int argc, char** argv) {
     Robot robot;
     Robot estimated_robot;
     std::vector<Particle> particles;
@@ -61,13 +126,68 @@ int main(int argc, char** argv) {
             }
         }
 
+        SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 255, 255, 255));
+
         double dt = 1 / FPS;
 
         int mouse_x, mouse_y;
         uint32_t mouse_buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
         if (mouse_buttons & SDL_BUTTON(1)) {
-            std::cout << "a" << std::endl;
+            Vector2 old_left = robot.left_wheel_pos();
+            Vector2 old_right = robot.right_wheel_pos();
+            double old_angle = robot.angle;
+
+            double d_left = 0;
+            double d_right = 0;
+
+            size_t iterations = 50;
+            for (size_t i = 0; i < iterations; i++) {
+                Vector2 mouse_pos(mouse_x, mouse_y);
+                Vector2 direction = robot.direction().moved_towards((mouse_pos - robot.pos).normalized(),
+                                                                    robot.angular_speed * (dt / iterations));
+
+                robot.angle = atan2(direction.y, direction.x);
+                robot.pos += direction * (dt / iterations) * robot.linear_speed;
+
+                Vector2 new_left = robot.left_wheel_pos();
+                Vector2 new_right = robot.right_wheel_pos();
+
+                Vector2 old_left_rel = (old_left - robot.pos).rotated(-robot.angle);
+                Vector2 old_right_rel = (old_right - robot.pos).rotated(-robot.angle);
+
+                d_left += (new_left - old_left).norm() * (old_left_rel.x <= 0 ? 1 : -1);
+                d_right += (new_right - old_right).norm() * (old_right_rel.x <= 0 ? 1 : -1);
+
+                old_left = new_left;
+                old_right = new_right;
+            }
+
+            double avg_angle = (robot.angle + old_angle) / 2;
+            if (abs(old_angle - robot.angle) > M_PI) {
+                if (avg_angle > 0)
+                    avg_angle -= M_PI;
+                else
+                    avg_angle += M_PI;
+            }
+
+            robot.speeds_center.push_back((d_left + d_right) / 2 / dt);
+            robot.omega.push_back((d_left - d_right) / robot.size() / dt);
+            robot.angles.push_back(avg_angle);
         }
+
+        size_t n = robot.speeds_center.size();
+        if (n % 2 == 1 && n >= 3) {
+            std::vector<double> theta = integrate_cumul(robot.omega, dt);
+            std::vector<double> dx = vec_mul(robot.speeds_center, vec_cos(theta));
+            std::vector<double> dy = vec_mul(robot.speeds_center, vec_sin(theta));
+            std::vector<double> estimated_xs = integrate_cumul(dx, dt);
+            std::vector<double> estimated_ys = integrate_cumul(dy, dt);
+
+            estimated_robot.pos = Vector2(100 + estimated_xs.back(), 100 + estimated_ys.back());
+            estimated_robot.angle = theta.back();
+        }
+
+        // SDL_Fill
     }
 
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 255, 255, 255));
@@ -79,4 +199,4 @@ int main(int argc, char** argv) {
     SDL_Quit();
 
     return 0;
-}
+}*/

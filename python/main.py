@@ -261,8 +261,8 @@ def main():
                 old_left_rel = r_m @ (old_left - robot.pos)
                 old_right_rel = r_m @ (old_right - robot.pos)
 
-                d_left += np.linalg.norm(robot.left_wheel_pos() - old_left) * (1 if old_left_rel[0] <= 0 else -1)
-                d_right += np.linalg.norm(robot.right_wheel_pos() - old_right) * (1 if old_right_rel[0] <= 0 else -1)
+                d_left += np.linalg.norm(new_left - old_left) * (1 if old_left_rel[0] <= 0 else -1)
+                d_right += np.linalg.norm(new_right - old_right) * (1 if old_right_rel[0] <= 0 else -1)
 
                 old_left = new_left
                 old_right = new_right
