@@ -1,0 +1,156 @@
+import pygame
+import math
+import numpy as np
+import time
+
+FPS = 60
+
+def normalize(vec):
+    return vec / np.linalg.norm(vec)
+
+def move_towards(curr, target, max_dist):
+    delta = target - curr
+    if np.linalg.norm(delta) <= max_dist:
+        return target
+    return curr + normalize(delta) * max_dist
+
+def rotation_matrix(angle):
+    return np.array([[math.cos(angle), -math.sin(angle)], [math.sin(angle), math.cos(angle)]])
+
+class Robot:
+    def __init__(self):
+        self.pos = np.array([100.0, 100.0])
+        self.angle = 0.0
+        self.radius = 20.0
+        self.speed = 200.0
+        self.angular_speed = 0.5
+
+        self.speeds_left = np.array([])
+        self.speeds_right = np.array([])
+    def direction(self):
+        return np.array([math.cos(self.angle), math.sin(self.angle)])
+    def orientation_pos(self):
+        return self.pos + self.direction() * self.radius/2
+    def left_wheel_pos(self):
+        angle = self.angle - math.pi/2
+        return self.pos + np.array([math.cos(angle), math.sin(angle)]) * self.radius
+    def right_wheel_pos(self):
+        angle = self.angle + math.pi/2
+        return self.pos + np.array([math.cos(angle), math.sin(angle)]) * self.radius
+    def size(self):
+        return self.radius * 2
+
+robot = Robot()
+estimated_robot_r = Robot()
+estimated_robot_t = Robot()
+estimated_robot_s = Robot()
+
+def draw_robot(robot, surface, color):
+    pygame.draw.circle(surface, color, robot.pos, robot.radius)
+    pygame.draw.circle(surface, (0, 0, 0), robot.orientation_pos(), robot.radius/2)
+    pygame.draw.circle(surface, (0, 255, 0), robot.left_wheel_pos(), robot.radius/4)
+    pygame.draw.circle(surface, (0, 0, 255), robot.right_wheel_pos(), robot.radius/4)
+
+def main():
+    pygame.init()
+    pygame.display.set_caption("motion simulation")
+
+    surface = pygame.display.set_mode((500, 750))
+
+    last_time = time.time()
+    clock = pygame.time.Clock()
+    running = True
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        curr_time = time.time()
+        time_delta = curr_time - last_time
+        last_time = curr_time
+        clock.tick(FPS)
+
+        surface.fill((30, 30, 30))
+
+        dt = 1 / FPS
+
+        if pygame.mouse.get_pressed()[0]:
+            mouse_pos = np.array(pygame.mouse.get_pos())
+            direction = move_towards(robot.direction(), normalize(mouse_pos - robot.pos), robot.angular_speed)
+
+            old_left = robot.left_wheel_pos()
+            old_right = robot.right_wheel_pos()
+
+            robot.angle = math.atan2(direction[1], direction[0])
+            robot.pos += direction * dt * robot.speed
+
+            new_left = robot.left_wheel_pos()
+            new_right = robot.right_wheel_pos()
+
+            r_m = rotation_matrix(-robot.angle)
+            old_left_rel = r_m @ (old_left - robot.pos)
+            old_right_rel = r_m @ (old_right - robot.pos)
+
+            d_left = np.linalg.norm(robot.left_wheel_pos() - old_left) * (1 if old_left_rel[0] <= 0 else -1)
+            d_right = np.linalg.norm(robot.right_wheel_pos() - old_right) * (1 if old_right_rel[0] <= 0 else -1)
+
+            robot.speeds_left = np.append(robot.speeds_left, d_left / dt)
+            robot.speeds_right = np.append(robot.speeds_right, d_right / dt)
+
+        n = len(robot.speeds_left)
+        if n % 2 == 1 and n >= 3:
+            speeds_center = (robot.speeds_left + robot.speeds_right) / 2
+            omega = (robot.speeds_left - robot.speeds_right) / robot.size()
+
+            def integrate_r(d):
+                return np.append([0], d[0:n-1] * dt)
+
+            def integrate_t(d):
+                return np.append([0], ((d[0:n-1] + d[1:n]) / 2) * dt)
+
+            def integrate_s(d):
+                a_l = 2 * dt * (5/24 * np.append([0], d[0:n-1]) + 8/24 * d - 1/24 * np.append(d[1:n], [0]))
+                a_r = 2 * dt * (-1/24 * np.append([0, 0], d[0:n-2]) + 8/24 * np.append([0], d[0:n-1]) + 5/24 * d)
+                b_r = np.array([0, 1] * (n//2) + [0])
+                b_l = np.array([1, 0] * (n//2) + [1])
+
+                return a_l * b_l + a_r * b_r
+
+            integrate = integrate_r
+            theta = np.cumsum(integrate(omega))
+            dx = speeds_center * np.cos(theta)
+            dy = speeds_center * np.sin(theta)
+            X = np.cumsum(integrate(dx))
+            Y = np.cumsum(integrate(dy))
+            estimated_robot_r.pos = np.array([X[-1] + 100, Y[-1] + 100])
+            estimated_robot_r.angle = theta[-1]
+
+            integrate = integrate_t
+            theta = np.cumsum(integrate(omega))
+            dx = speeds_center * np.cos(theta)
+            dy = speeds_center * np.sin(theta)
+            X = np.cumsum(integrate(dx))
+            Y = np.cumsum(integrate(dy))
+            estimated_robot_t.pos = np.array([X[-1] + 100, Y[-1] + 100])
+            estimated_robot_t.angle = theta[-1]
+
+            integrate = integrate_s
+            theta = np.cumsum(integrate(omega))
+            dx = speeds_center * np.cos(theta)
+            dy = speeds_center * np.sin(theta)
+            X = np.cumsum(integrate(dx))
+            Y = np.cumsum(integrate(dy))
+            estimated_robot_s.pos = np.array([X[-1] + 100, Y[-1] + 100])
+            estimated_robot_s.angle = theta[-1]
+
+
+        draw_robot(robot, surface, (255, 0, 0))
+        draw_robot(estimated_robot_r, surface, (0, 255, 255))
+        draw_robot(estimated_robot_t, surface, (255, 255, 0))
+        draw_robot(estimated_robot_s, surface, (255, 0, 255))
+
+        pygame.display.flip()
+
+
+if __name__=="__main__":
+    main()
