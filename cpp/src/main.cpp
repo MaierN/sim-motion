@@ -1,8 +1,6 @@
 #define HAVE_M_PI
 #define _USE_MATH_DEFINES
 
-//#include <SDL.h>
-
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
@@ -40,39 +38,7 @@ static std::vector<double> vec_mul(std::vector<double> v1, std::vector<double> v
     return res;
 }
 
-int main() {
-    std::cout << "ffffffffff" << std::endl;
-    // create the window
-    sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
-
-    // run the program as long as the window is open
-    while (window.isOpen())
-    {
-        // check all the window's events that were triggered since the last iteration of the loop
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            // "close requested" event: we close the window
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-
-        // clear the window with black color
-        window.clear(sf::Color::Black);
-
-        // draw everything here...
-        // window.draw(...);
-
-        // end the current frame
-        window.display();
-    }
-
-    std::cout << "alskjdflaksdjfalksd" << std::endl;
-
-    return 0;
-}
-
-/*int main2(int argc, char** argv) {
+int main(int argc, char** argv) {
     Robot robot;
     Robot estimated_robot;
     std::vector<Particle> particles;
@@ -80,14 +46,14 @@ int main() {
         particles.push_back(Particle());
     }
 
-    SDL_Window* window = NULL;
-    SDL_Surface* surface = NULL;
+    //SDL_Window* window = NULL;
+    //SDL_Surface* surface = NULL;
 
-    SDL_Init(SDL_INIT_VIDEO);
+    //SDL_Init(SDL_INIT_VIDEO);
 
-    window = SDL_CreateWindow("sim motion", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
-                              SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    surface = SDL_GetWindowSurface(window);
+    //window = SDL_CreateWindow("sim motion", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
+    //                          SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    //surface = SDL_GetWindowSurface(window);
 
     bool running = true;
     while (running) {
@@ -95,8 +61,8 @@ int main() {
         bool do_sensor_update = false;
         bool do_resampling = false;
 
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
+        //SDL_Event event;
+        /*while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
             }
@@ -124,15 +90,15 @@ int main() {
                     do_resampling = true;
                 }
             }
-        }
+        }*/
 
-        SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 255, 255, 255));
+        //SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 255, 255, 255));
 
         double dt = 1 / FPS;
 
         int mouse_x, mouse_y;
-        uint32_t mouse_buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-        if (mouse_buttons & SDL_BUTTON(1)) {
+        //uint32_t mouse_buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+        /*if (mouse_buttons & SDL_BUTTON(1)) {
             Vector2 old_left = robot.left_wheel_pos();
             Vector2 old_right = robot.right_wheel_pos();
             double old_angle = robot.angle;
@@ -173,7 +139,7 @@ int main() {
             robot.speeds_center.push_back((d_left + d_right) / 2 / dt);
             robot.omega.push_back((d_left - d_right) / robot.size() / dt);
             robot.angles.push_back(avg_angle);
-        }
+        }*/
 
         size_t n = robot.speeds_center.size();
         if (n % 2 == 1 && n >= 3) {
@@ -187,16 +153,11 @@ int main() {
             estimated_robot.angle = theta.back();
         }
 
-        // SDL_Fill
+        //SDL_UpdateWindowSurface(window);
     }
 
-    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 255, 255, 255));
-
-    SDL_UpdateWindowSurface(window);
-    // SDL_Delay(2000);
-
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    //SDL_DestroyWindow(window);
+    //SDL_Quit();
 
     return 0;
-}*/
+}

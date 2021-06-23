@@ -13,14 +13,10 @@ enable_testing()
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
-#include_directories("${CMAKE_SOURCE_DIR}/SDL2-vc/include")
-#link_directories("${CMAKE_SOURCE_DIR}/SDL2-vc/lib/x64")
-
 include_directories("${CMAKE_SOURCE_DIR}/SFML-vc/include")
 link_directories("${CMAKE_SOURCE_DIR}/SFML-vc/lib")
 
 add_executable(sim-motion ${SOURCES})
-#target_link_libraries(sim-motion SDL2 SDL2main sfml-audio sfml-graphics sfml-system sfml-window)
 target_link_libraries(sim-motion sfml-audio sfml-graphics sfml-system sfml-window)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
