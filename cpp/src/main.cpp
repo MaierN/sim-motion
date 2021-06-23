@@ -1,28 +1,26 @@
+#include <SDL.h>
+
 #include <iostream>
 
-#include "SDL.h"
+#include "Config.h"
+#include "Particle.hpp"
+#include "Robot.hpp"
 #include "Vector2.hpp"
 
-const int FPS = 60;
-const int N_LASER = 10;
-const int N_PARTICLES = 500;
-const int N_SELECTED_PARTICLES = 5;
-
-const int SCREEN_WIDTH = 500;
-const int SCREEN_HEIGHT = 750;
-
 int main(int argc, char** argv) {
-    std::cout << "go..." << std::endl;
+    Robot robot;
+    Robot estimated_robot;
+    std::vector<Particle> particles;
+    for (size_t i = 0; i < N_PARTICLES; i++) {
+        particles.push_back(Particle());
+    }
 
     SDL_Window* window = NULL;
     SDL_Surface* surface = NULL;
 
-    std::cout << "f" << std::endl;
     SDL_Init(SDL_INIT_VIDEO);
-    std::cout << "a" << std::endl;
 
-    window = SDL_CreateWindow("sim motion", SDL_WINDOWPOS_UNDEFINED,
-                              SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
+    window = SDL_CreateWindow("sim motion", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
                               SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     surface = SDL_GetWindowSurface(window);
 
@@ -47,8 +45,7 @@ int main(int argc, char** argv) {
                     Vector2 a(3, 4);
                     Vector2 b(5, 6);
 
-                    std::cout << a << " + " << b << " = " << (a + b)
-                              << std::endl;
+                    std::cout << a << " + " << b << " = " << (a + b) << std::endl;
                 }
                 if (event.key.keysym.scancode == SDL_SCANCODE_S) {
                     do_sensor_update = true;
@@ -62,6 +59,14 @@ int main(int argc, char** argv) {
                     do_resampling = true;
                 }
             }
+        }
+
+        double dt = 1 / FPS;
+
+        int mouse_x, mouse_y;
+        uint32_t mouse_buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+        if (mouse_buttons & SDL_BUTTON(1)) {
+            std::cout << "a" << std::endl;
         }
     }
 

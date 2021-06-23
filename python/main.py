@@ -108,13 +108,12 @@ class Robot:
         return self.pos + np.array([math.cos(angle), math.sin(angle)]) * self.radius
     def size(self):
         return self.radius * 2
-    def next_measure_lidar(self, surface):
+    def next_measure_lidar(self):
         laser_angle = self.next_lidar_angle + self.angle + np.random.normal(scale=0.01)
         direction = np.array([math.cos(laser_angle), math.sin(laser_angle)])
         laser_range = 10000
         laser_end_point = self.pos + direction * laser_range
         laser_segment = np.array([self.pos, laser_end_point])
-        #pygame.draw.line(surface, (255, 255, 0), laser_segment[0], laser_segment[1])
         min_dist = laser_range
         min_point = laser_end_point
         for obstacle in static_obstacles:
@@ -129,7 +128,7 @@ class Robot:
             if point is not None:
                 distance = np.linalg.norm(robot.pos - point)
                 if distance <= min_dist:
-                    min_dist = distance
+                    min_dist = distance + np.random.normal(scale=2)
                     min_point = point + np.random.normal(scale=2, size=2)
         old_lidar_angle = self.next_lidar_angle
         self.next_lidar_angle += 2*math.pi/N_LASER
