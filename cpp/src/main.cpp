@@ -45,10 +45,6 @@ static void draw_particle(sf::RenderWindow& window, const Particle& particle) {
     draw_line(window, particle.pos, particle.pos + direction * 7, color);
 }
 
-static bool compare_particles(const Particle& p1, const Particle& p2) {
-    return p1.weight < p2.weight;
-}
-
 int main(int argc, char** argv) {
     Robot robot;
     Robot estimated_robot;
@@ -190,7 +186,8 @@ int main(int argc, char** argv) {
                     particle.weight /= max_weight;
                 }
             }
-            std::sort(particles.begin(), particles.end(), compare_particles);
+            std::sort(particles.begin(), particles.end(),
+                      [](const Particle& p1, const Particle& p2) -> bool { return p1.weight < p2.weight; });
         }
 
         if (do_resampling) {
@@ -218,7 +215,8 @@ int main(int argc, char** argv) {
                     if (particle.weight >= max_weight) max_weight = particle.weight;
                     particles.push_back(particle);
                 }
-                std::sort(particles.begin(), particles.end(), compare_particles);
+                std::sort(particles.begin(), particles.end(),
+                          [](const Particle& p1, const Particle& p2) -> bool { return p1.weight < p2.weight; });
 
                 if (max_weight > 0) {
                     for (Particle& particle : particles) particle.weight /= max_weight;
@@ -226,8 +224,7 @@ int main(int argc, char** argv) {
                     std::cout << "max_weight == 0..." << std::endl;
                 }
 
-                // todo try median instead of average
-                double selected_weight = 0;
+                /*double selected_weight = 0;
                 Vector2 avg_pos(0, 0);
                 double avg_angle = 0;
                 for (size_t i = 0; i < N_SELECTED_PARTICLES; i++) {
@@ -237,7 +234,56 @@ int main(int argc, char** argv) {
                     selected_weight += p.weight;
                 }
                 avg_pos /= selected_weight;
-                avg_angle /= selected_weight;
+                avg_angle /= selected_weight;*/
+
+                std::vector<Particle> selected_particles_pos_x;
+                std::vector<Particle> selected_particles_pos_y;
+                std::vector<Particle> selected_particles_angle;
+                double total_selected_weight = 0;
+                for (size_t i = 0; i < N_SELECTED_PARTICLES; i++) {
+                    const Particle& p = particles[particles.size() - 1 - i];
+                    selected_particles_pos_x.push_back(p);
+                    selected_particles_pos_y.push_back(p);
+                    selected_particles_angle.push_back(p);
+                    total_selected_weight += p.weight;
+                }
+                std::sort(selected_particles_pos_x.begin(), selected_particles_pos_x.end(),
+                          [](const Particle& p1, const Particle& p2) -> bool { return p1.pos.x < p2.pos.x; });
+                std::sort(selected_particles_pos_y.begin(), selected_particles_pos_y.end(),
+                          [](const Particle& p1, const Particle& p2) -> bool { return p1.pos.y < p2.pos.y; });
+                std::sort(selected_particles_angle.begin(), selected_particles_angle.end(),
+                          [](const Particle& p1, const Particle& p2) -> bool { return p1.angle < p2.angle; });
+                /*double median_pos_x = 0;
+                double median_pos_y = 0;
+                double median_angle = 0;
+                double accumulator = 0;
+                for (size_t i = 0; i < selected_particles_pos_x.size(); i++) {
+                    accumulator += selected_particles_pos_x[i].weight;
+                    if (accumulator >= total_selected_weight / 2) {
+                        median_pos_x = selected_particles_pos_x[i].pos.x;
+                        break;
+                    }
+                }
+                accumulator = 0;
+                for (size_t i = 0; i < selected_particles_pos_y.size(); i++) {
+                    accumulator += selected_particles_pos_y[i].weight;
+                    if (accumulator >= total_selected_weight / 2) {
+                        median_pos_y = selected_particles_pos_y[i].pos.y;
+                        break;
+                    }
+                }
+                accumulator = 0;
+                for (size_t i = 0; i < selected_particles_angle.size(); i++) {
+                    accumulator += selected_particles_angle[i].weight;
+                    if (accumulator >= total_selected_weight / 2) {
+                        median_angle = selected_particles_angle[i].angle;
+                        break;
+                    }
+                }
+                Vector2 avg_pos(median_pos_x, median_pos_y);
+                double avg_angle = median_angle;*/
+                Vector2 avg_pos(selected_particles_pos_x[selected_particles_pos_x.size() / 2].pos.x, selected_particles_pos_y[selected_particles_pos_y.size() / 2].pos.y);
+                double avg_angle = selected_particles_angle[selected_particles_angle.size() / 2].angle;
 
                 corrected_robot.pos = avg_pos;
                 corrected_robot.angle = avg_angle;

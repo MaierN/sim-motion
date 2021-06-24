@@ -33,8 +33,8 @@ const double OFFSET_PARTICLE_RESAMPLE_ANGLE = 0.005;
     const double ERROR_ESTIMATED_POS = 0.5;
     const double ERROR_ESTIMATED_ANGLE = 0.01;
 
-    const double ERROR_LASER_ANGLE = 0.01;
-    const double ERROR_LASER_DISTANCE = 2;
+    const double ERROR_LASER_DISTANCE = 4;
+    const double ERROR_LASER_ANGLE = 0.02;
 
     const double ERROR_PARTICLE_INITIAL_POS = 20;
 #else
