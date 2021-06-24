@@ -29,12 +29,12 @@ class Line {
     LineIntersection line_line_intersection(const Line& l) const {
         double det = (p1.x - p2.x) * (l.p1.y - l.p2.y) - (p1.y - p2.y) * (l.p1.x - l.p2.x);
         if (abs(det) <= 1e-3) return LineIntersection(Vector2(0, 0), false);
-        double px = ((p1.x * p2.y - p1.y * p2.x) * (l.p1.x - l.p2.x) -
-                     (p1.x - p2.x) * (l.p1.x * l.p2.y - l.p1.y * l.p2.x)) /
-                    det;
-        double py = ((p1.x * p2.y - p1.y * p2.x) * (l.p1.y - l.p2.y) -
-                     (p1.y - p2.y) * (l.p1.x * l.p2.y - l.p1.y * l.p2.x)) /
-                    det;
+        double px =
+            ((p1.x * p2.y - p1.y * p2.x) * (l.p1.x - l.p2.x) - (p1.x - p2.x) * (l.p1.x * l.p2.y - l.p1.y * l.p2.x)) /
+            det;
+        double py =
+            ((p1.x * p2.y - p1.y * p2.x) * (l.p1.y - l.p2.y) - (p1.y - p2.y) * (l.p1.x * l.p2.y - l.p1.y * l.p2.x)) /
+            det;
         return LineIntersection(Vector2(px, py), true);
     }
 

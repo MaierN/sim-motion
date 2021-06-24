@@ -8,6 +8,7 @@
 #include "Line.hpp"
 #include "Robot.hpp"
 #include "Vector2.hpp"
+#include "config.h"
 
 class Particle {
    public:
@@ -16,20 +17,21 @@ class Particle {
     double weight;
 
     Particle() : weight(1) {
-        std::default_random_engine random_engine;
         pos = Vector2(std::normal_distribution<double>(100, 20)(random_engine),
                       std::normal_distribution<double>(100, 20)(random_engine));
         angle = std::uniform_real_distribution<double>(0, 2 * M_PI)(random_engine);
     }
     Particle(const Particle& p) : pos(p.pos), angle(p.angle), weight(p.weight) {
-        std::default_random_engine random_engine;
         pos += Vector2(std::normal_distribution<double>(0, 2)(random_engine),
                        std::normal_distribution<double>(0, 2)(random_engine));
-        angle += std::normal_distribution<double>(0, 0.05)(random_engine);
+        angle += std::normal_distribution<double>(0, 0.005)(random_engine);
     }
 
-    LidarMeasure sensor_measure(const Map& map, double measure_angle) {
-        std::default_random_engine random_engine;
+    void apply_motion(Motion m) {
+        pos += m.pos_diff.rotated(angle);
+        angle += m.angle_diff;
+    }
+    LidarMeasure sensor_measure(const Map& map, double measure_angle) const {
         double laser_angle = measure_angle + angle;
         Vector2 direction(cos(laser_angle), sin(laser_angle));
         double laser_range = 10000;

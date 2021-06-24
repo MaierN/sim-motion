@@ -26,7 +26,8 @@ class LidarMeasure {
     double distance;
     Vector2 point;
 
-    LidarMeasure(double angle, double distance, const Vector2& point) : angle(angle), distance(distance), point(point) {}
+    LidarMeasure(double angle, double distance, const Vector2& point)
+        : angle(angle), distance(distance), point(point) {}
 };
 
 class Robot {
@@ -50,8 +51,8 @@ class Robot {
         : pos(Vector2(100, 100)),
           angle(0),
           radius(20),
-          linear_speed(300),
-          angular_speed(25),
+          linear_speed(600),
+          angular_speed(20),
           speeds_center(),
           omega(),
           angles(),
@@ -59,26 +60,24 @@ class Robot {
           last_pos(pos),
           last_angle(angle) {}
 
-    Vector2 direction() {
+    Vector2 direction() const {
         return Vector2(cos(angle), sin(angle));
     }
-    Vector2 orientation_pos() {
+    Vector2 orientation_pos() const {
         return pos + direction() * radius / 2;
     }
-    Vector2 left_wheel_pos() {
+    Vector2 left_wheel_pos() const {
         double angle = this->angle - M_PI / 2;
-        return pos + Vector2(cos(angle), sin(angle));
+        return pos + Vector2(cos(angle), sin(angle)) * radius;
     }
-    Vector2 right_wheel_pos() {
+    Vector2 right_wheel_pos() const {
         double angle = this->angle + M_PI / 2;
-        return pos + Vector2(cos(angle), sin(angle));
+        return pos + Vector2(cos(angle), sin(angle)) * radius;
     }
-    double size() {
+    double size() const {
         return radius * 2;
     }
     LidarMeasure next_measure_lidar(const Map& map) {
-        std::default_random_engine random_engine;
-
         double laser_angle = next_lidar_angle + angle + std::normal_distribution<double>(0, 0.01)(random_engine);
         Vector2 direction(cos(laser_angle), sin(laser_angle));
         double laser_range = 10000;
