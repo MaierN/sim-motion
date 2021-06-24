@@ -4,7 +4,7 @@
 
 const int FPS = 60;
 const int N_LASER = 30;
-const int N_PARTICLES = 100;
+const int N_PARTICLES = 400;
 const int N_SELECTED_PARTICLES = 50;
 
 const int SCREEN_WIDTH = 500;

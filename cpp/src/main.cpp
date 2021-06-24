@@ -18,7 +18,7 @@ static std::vector<double> integrate_cumul(std::vector<double> v, double dt, boo
         res.push_back(cumul);
         cumul += v[i] * dt;
     };
-    res.push_back(cumul);
+    //res.push_back(cumul);
     return res;
 }
 
@@ -146,6 +146,7 @@ int main(int argc, char** argv) {
 
         double dt = 1 / (double)FPS;
 
+if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
             Vector2 old_left = robot.left_wheel_pos();
             Vector2 old_right = robot.right_wheel_pos();
@@ -198,7 +199,7 @@ int main(int argc, char** argv) {
         size_t n = robot.speeds_center.size();
         if (n % 2 == 1 && n >= 3) {
             std::vector<double> theta = integrate_cumul(robot.omega, dt, false);
-            //theta = robot.angles;
+            theta = robot.angles;
             std::vector<double> dx = vec_mul(robot.speeds_center, vec_cos(theta));
             std::vector<double> dy = vec_mul(robot.speeds_center, vec_sin(theta));
             std::vector<double> estimated_xs = integrate_cumul(dx, dt);

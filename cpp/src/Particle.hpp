@@ -22,8 +22,8 @@ class Particle {
         angle = std::uniform_real_distribution<double>(0, 2 * M_PI)(random_engine);
     }
     Particle(const Particle& p) : pos(p.pos), angle(p.angle), weight(p.weight) {
-        pos += Vector2(std::normal_distribution<double>(0, 2)(random_engine),
-                       std::normal_distribution<double>(0, 2)(random_engine));
+        pos += Vector2(std::normal_distribution<double>(0, 1)(random_engine),
+                       std::normal_distribution<double>(0, 1)(random_engine));
         angle += std::normal_distribution<double>(0, 0.005)(random_engine);
     }
 
