@@ -46,4 +46,18 @@ class Line {
         Vector2 r_p = p.rotated(-angle);
         return (r_p.x >= r_l1.x && r_p.x <= r_l2.x) || (r_p.x <= r_l1.x && r_p.x >= r_l2.x);
     }
+
+    double point_line_distance(const Vector2& p) const {
+        Vector2 direction = p2 - p1;
+        double angle = atan2(direction.y, direction.x);
+        Vector2 r_l1 = p1.rotated(-angle);
+        Vector2 r_l2 = p2.rotated(-angle);
+        Vector2 r_p = p.rotated(-angle);
+
+        if (point_in_segment(p)) {
+            return abs(r_p.y - r_l1.y);
+        } else {
+            return std::min((r_p - r_l1).norm(), (r_p - r_l2).norm());
+        }
+    }
 };

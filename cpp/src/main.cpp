@@ -52,12 +52,16 @@ static bool compare_particles(const Particle& p1, const Particle& p2) {
 int main(int argc, char** argv) {
     Robot robot;
     Robot estimated_robot;
+    Robot corrected_robot;
+
     std::vector<Particle> particles;
     for (size_t i = 0; i < N_PARTICLES; i++) {
         particles.push_back(Particle());
     }
+
     Map map;
     std::vector<Vector2> sensor_points;
+    std::vector<Vector2> sensor_points_rejected;
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "sim motion");
     window.setFramerateLimit(FPS);
@@ -121,13 +125,13 @@ int main(int argc, char** argv) {
             robot.angle = atan2(direction.y, direction.x);
             if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) robot.pos += direction * dt * robot.linear_speed;
 
-            Motion mu = robot.get_motion_update();
+            Motion m = robot.get_motion_update();
             estimated_robot.pos +=
-                (mu.pos_diff + Vector2(std::normal_distribution<double>(0, ERROR_ESTIMATED_POS)(random_engine),
-                                       std::normal_distribution<double>(0, ERROR_ESTIMATED_POS)(random_engine)))
+                (m.pos_diff + Vector2(std::normal_distribution<double>(0, ERROR_ESTIMATED_POS)(random_engine),
+                                      std::normal_distribution<double>(0, ERROR_ESTIMATED_POS)(random_engine)))
                     .rotated(estimated_robot.angle);
             estimated_robot.angle +=
-                mu.angle_diff + std::normal_distribution<double>(0, ERROR_ESTIMATED_ANGLE)(random_engine);
+                m.angle_diff + std::normal_distribution<double>(0, ERROR_ESTIMATED_ANGLE)(random_engine);
         }
 
         draw_robot(window, robot, sf::Color(255, 0, 0), true);
@@ -145,19 +149,32 @@ int main(int argc, char** argv) {
                 particle.apply_motion(m);
                 // particle.angle = robot.angle;
             }
+            corrected_robot.pos += m.pos_diff.rotated(corrected_robot.angle);
+            corrected_robot.angle += m.angle_diff;
         }
 
         if (do_sensor_update) {
             // std::cout << "sensor update" << std::endl;
             sensor_points.clear();
+            sensor_points_rejected.clear();
             for (size_t i = 0; i < N_LASER; i++) {
                 LidarMeasure meas = robot.next_measure_lidar(map);
-                sensor_points.push_back(meas.point);
+                Vector2 corrected_point = corrected_robot.pos + Vector2(cos(meas.angle + corrected_robot.angle),
+                                                                        sin(meas.angle + corrected_robot.angle)) *
+                                                                    meas.distance;
+                double min_dist_static_obstacle = map.min_dist_static_obstacle(corrected_point);
+                if (FILTER_MEASURES_NOT_CLOSE_TO_WALL &&
+                    min_dist_static_obstacle > FILTER_MEASURES_CLOSE_TO_WALL_DISTANCE) {
+                    sensor_points_rejected.push_back(corrected_point);
+                    continue;
+                } else {
+                    sensor_points.push_back(corrected_point);
+                }
 
                 for (Particle& particle : particles) {
                     LidarMeasure p_meas = particle.sensor_measure(map, meas.angle);
                     double error = meas.distance - p_meas.distance;
-                    if (error < -WEIGHT_DELTA) error = 0;
+                    if (FILTER_MEASURES_TOO_CLOSE && error < -WEIGHT_DELTA) error = 0;
                     double weight =
                         exp(-(error * error) / (2 * WEIGHT_PHI * WEIGHT_PHI)) / (WEIGHT_PHI * sqrt(2 * M_PI));
                     particle.weight *= weight;
@@ -209,6 +226,7 @@ int main(int argc, char** argv) {
                     std::cout << "max_weight == 0..." << std::endl;
                 }
 
+                // todo try median instead of average
                 double selected_weight = 0;
                 Vector2 avg_pos(0, 0);
                 double avg_angle = 0;
@@ -220,12 +238,14 @@ int main(int argc, char** argv) {
                 }
                 avg_pos /= selected_weight;
                 avg_angle /= selected_weight;
-                // std::cout << "Estimated pos: " << avg_pos << ", " << avg_angle << std::endl;
+
+                corrected_robot.pos = avg_pos;
+                corrected_robot.angle = avg_angle;
+
                 double pos_error = (avg_pos - robot.pos).norm();
                 double angle_error = abs(avg_angle - robot.angle);
                 while (angle_error > M_PI) angle_error -= 2 * M_PI;
                 angle_error = abs(angle_error);
-                // std::cout << "Error: " << pos_error << ", " << angle_error << std::endl;
                 error_text.setString("pos: " + (pos_error < 10 ? std::string("0") : std::string("")) +
                                      std::to_string(pos_error) + "\nang: " + std::to_string(angle_error));
             }
@@ -233,8 +253,10 @@ int main(int argc, char** argv) {
 
         window.draw(error_text);
 
+        draw_robot(window, corrected_robot, sf::Color(0, 255, 0), true);
         for (const Particle& particle : particles) draw_particle(window, particle);
         for (const Vector2& point : sensor_points) draw_circle(window, point, 2, sf::Color(255, 0, 0));
+        for (const Vector2& point : sensor_points_rejected) draw_circle(window, point, 2, sf::Color(255, 0, 255));
 
         window.display();
     }
