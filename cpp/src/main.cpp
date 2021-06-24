@@ -10,40 +10,6 @@
 #include "Robot.hpp"
 #include "Vector2.hpp"
 
-static std::vector<double> integrate_cumul(std::vector<double> v, double dt, bool add_zero=false) {
-    std::vector<double> res;
-    double cumul = 0;
-    //if (add_zero) res.push_back(0);
-    for (size_t i = 0; i < v.size(); i++) {
-        res.push_back(cumul);
-        cumul += v[i] * dt;
-    };
-    //res.push_back(cumul);
-    return res;
-}
-
-static std::vector<double> vec_sin(std::vector<double> v) {
-    std::vector<double> res;
-    for (size_t i = 0; i < v.size(); i++) res.push_back(sin(v[i]));
-    return res;
-}
-
-static std::vector<double> vec_cos(std::vector<double> v) {
-    std::vector<double> res;
-    for (size_t i = 0; i < v.size(); i++) res.push_back(cos(v[i]));
-    return res;
-}
-
-static std::vector<double> vec_mul(std::vector<double> v1, std::vector<double> v2) {
-    std::vector<double> res;
-    //if (v1.size() != v2.size()) {
-    //    std::cout << v1.size() << " " << v2.size() << std::endl;
-    //    exit(1);
-    //}
-    for (size_t i = 0; i < v1.size(); i++) res.push_back(v1[i] * v2[i]);
-    return res;
-}
-
 static void draw_circle(sf::RenderWindow& window, Vector2 center, double radius, const sf::Color& color,
                         bool outline = false) {
     sf::CircleShape mainCircle((float)radius);
@@ -113,8 +79,8 @@ int main(int argc, char** argv) {
         f_count++;
 
         bool do_motion_update = true;
-        bool do_sensor_update = f_count % 4 == 0;
-        bool do_resampling = f_count % 4 == 0;
+        bool do_sensor_update = f_count % UPDATE_DELAY == 0;
+        bool do_resampling = f_count % UPDATE_DELAY == 0;
 
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -146,67 +112,22 @@ int main(int argc, char** argv) {
 
         double dt = 1 / (double)FPS;
 
-if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
-            Vector2 old_left = robot.left_wheel_pos();
-            Vector2 old_right = robot.right_wheel_pos();
-            double old_angle = robot.angle;
+        if (ALWAYS_ROTATE || sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+            sf::Vector2i local_mouse_position = sf::Mouse::getPosition(window);
+            Vector2 mouse_pos(local_mouse_position.x, local_mouse_position.y);
+            Vector2 direction =
+                robot.direction().moved_towards((mouse_pos - robot.pos).normalized(), robot.angular_speed * dt);
 
-            double d_left = 0;
-            double d_right = 0;
+            robot.angle = atan2(direction.y, direction.x);
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) robot.pos += direction * dt * robot.linear_speed;
 
-            size_t iterations = 50;
-            for (size_t i = 0; i < iterations; i++) {
-                sf::Vector2i local_mouse_position = sf::Mouse::getPosition(window);
-                Vector2 mouse_pos(local_mouse_position.x, local_mouse_position.y);
-                Vector2 direction = robot.direction().moved_towards((mouse_pos - robot.pos).normalized(),
-                                                                    robot.angular_speed * (dt / iterations));
-
-                robot.angle = atan2(direction.y, direction.x);
-                if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-                    robot.pos += direction * (dt / iterations) * robot.linear_speed;
-
-                Vector2 new_left = robot.left_wheel_pos();
-                Vector2 new_right = robot.right_wheel_pos();
-
-                Vector2 old_left_rel = (old_left - robot.pos).rotated(-robot.angle);
-                Vector2 old_right_rel = (old_right - robot.pos).rotated(-robot.angle);
-
-                d_left += (new_left - old_left).norm() * (old_left_rel.x <= 0 ? 1 : -1);
-                d_right += (new_right - old_right).norm() * (old_right_rel.x <= 0 ? 1 : -1);
-
-                old_left = new_left;
-                old_right = new_right;
-            }
-
-            double avg_angle = (robot.angle + old_angle) / 2;
-            if (abs(old_angle - robot.angle) > M_PI) {
-                if (avg_angle > 0)
-                    avg_angle -= M_PI;
-                else
-                    avg_angle += M_PI;
-            }
-
-            d_left += std::normal_distribution<double>(0, 0.1)(random_engine);
-            d_right += std::normal_distribution<double>(0, 0.1)(random_engine);
-            avg_angle += std::normal_distribution<double>(0, 0.001)(random_engine);
-
-            robot.speeds_center.push_back((d_left + d_right) / 2 / dt);
-            robot.omega.push_back((d_left - d_right) / robot.size() / dt);
-            robot.angles.push_back(avg_angle);
-        }
-
-        size_t n = robot.speeds_center.size();
-        if (n % 2 == 1 && n >= 3) {
-            std::vector<double> theta = integrate_cumul(robot.omega, dt, false);
-            theta = robot.angles;
-            std::vector<double> dx = vec_mul(robot.speeds_center, vec_cos(theta));
-            std::vector<double> dy = vec_mul(robot.speeds_center, vec_sin(theta));
-            std::vector<double> estimated_xs = integrate_cumul(dx, dt);
-            std::vector<double> estimated_ys = integrate_cumul(dy, dt);
-
-            estimated_robot.pos = Vector2(100 + estimated_xs.back(), 100 + estimated_ys.back());
-            estimated_robot.angle = theta.back();
+            Motion mu = robot.get_motion_update();
+            estimated_robot.pos +=
+                (mu.pos_diff + Vector2(std::normal_distribution<double>(0, ERROR_ESTIMATED_POS)(random_engine),
+                                       std::normal_distribution<double>(0, ERROR_ESTIMATED_POS)(random_engine)))
+                    .rotated(estimated_robot.angle);
+            estimated_robot.angle +=
+                mu.angle_diff + std::normal_distribution<double>(0, ERROR_ESTIMATED_ANGLE)(random_engine);
         }
 
         draw_robot(window, robot, sf::Color(255, 0, 0), true);
@@ -222,7 +143,7 @@ if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
             Motion m = estimated_robot.get_motion_update();
             for (Particle& particle : particles) {
                 particle.apply_motion(m);
-                //particle.angle = robot.angle;
+                // particle.angle = robot.angle;
             }
         }
 
@@ -236,10 +157,9 @@ if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
                 for (Particle& particle : particles) {
                     LidarMeasure p_meas = particle.sensor_measure(map, meas.angle);
                     double error = meas.distance - p_meas.distance;
-                    double delta = 10;
-                    if (error < -delta) error = 0;
-                    double phi = 20;
-                    double weight = exp(-(error * error) / (2 * phi * phi)) / (phi * sqrt(2 * M_PI));
+                    if (error < -WEIGHT_DELTA) error = 0;
+                    double weight =
+                        exp(-(error * error) / (2 * WEIGHT_PHI * WEIGHT_PHI)) / (WEIGHT_PHI * sqrt(2 * M_PI));
                     particle.weight *= weight;
                 }
             }

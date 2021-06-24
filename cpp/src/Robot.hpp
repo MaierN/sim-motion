@@ -51,8 +51,8 @@ class Robot {
         : pos(Vector2(100, 100)),
           angle(0),
           radius(20),
-          linear_speed(400),
-          angular_speed(15),
+          linear_speed(ROBOT_LINEAR_SPEED),
+          angular_speed(ROBOT_ANGULAR_SPEED),
           speeds_center(),
           omega(),
           angles(),
@@ -78,9 +78,9 @@ class Robot {
         return radius * 2;
     }
     LidarMeasure next_measure_lidar(const Map& map) {
-        double laser_angle = next_lidar_angle + angle + std::normal_distribution<double>(0, 0.01)(random_engine);
+        double laser_angle = next_lidar_angle + angle + std::normal_distribution<double>(0, ERROR_LASER_ANGLE)(random_engine);
         Vector2 direction(cos(laser_angle), sin(laser_angle));
-        double laser_range = 10000;
+        double laser_range = LASER_RANGE;
         Vector2 laser_end_point = pos + direction * laser_range;
         Line laser_segment = Line(pos, laser_end_point);
 
@@ -92,9 +92,9 @@ class Robot {
             if (li.exists) {
                 double distance = (pos - li.p).norm();
                 if (distance <= min_dist) {
-                    min_dist = distance + std::normal_distribution<double>(0, 2)(random_engine);
-                    min_point = li.p + Vector2(std::normal_distribution<double>(0, 2)(random_engine),
-                                               std::normal_distribution<double>(0, 2)(random_engine));
+                    min_dist = distance + std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine);
+                    min_point = li.p + Vector2(std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine),
+                                               std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine));
                 }
             }
         }
@@ -104,9 +104,9 @@ class Robot {
             if (li.exists) {
                 double distance = (pos - li.p).norm();
                 if (distance <= min_dist) {
-                    min_dist = distance;
-                    min_point = li.p + Vector2(std::normal_distribution<double>(0, 2)(random_engine),
-                                               std::normal_distribution<double>(0, 2)(random_engine));
+                    min_dist = distance + std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine);;
+                    min_point = li.p + Vector2(std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine),
+                                               std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine));
                 }
             }
         }
