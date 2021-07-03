@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -DNDEBUG  -rdynamic CMakeFiles/sim-motion.dir/src/main.cpp.o  -o sim-motion   -L/mnt/c/Users/Nicolas/Documents/my_documents/eurobot/sim-motion/libraries/SFML-gcc/lib  -Wl,-rpath,/mnt/c/Users/Nicolas/Documents/my_documents/eurobot/sim-motion/libraries/SFML-gcc/lib -lsfml-audio -lsfml-graphics -lsfml-system -lsfml-window 
