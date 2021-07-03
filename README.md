@@ -16,6 +16,8 @@ Error is shown in the upper left corner
 
 Particles are shown as black/pink arrows based on their weight
 
+![](example.png)
+
 ## Build
 ```
 mkdir build
