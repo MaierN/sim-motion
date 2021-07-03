@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(sim-motion VERSION 0.1.0)
 
-set(CMAKE_BUILD_TYPE "Release")
-
 if(MSVC)
   add_compile_options(/W3)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)

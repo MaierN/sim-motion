@@ -40,7 +40,7 @@ static void draw_particle(sf::RenderWindow& window, const Particle& particle) {
     draw_line(window, particle.pos, particle.pos + direction * 7, color);
 }
 
-int main(int argc, char** argv) {
+int main() {
     Robot robot;            // "Physical" robot
     Robot estimated_robot;  // Estimation based on odometry
     Robot corrected_robot;  // Estimation based on odometry and lidar Monte Carlo simulation
