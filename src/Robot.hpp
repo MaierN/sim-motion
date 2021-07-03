@@ -11,6 +11,9 @@
 #include "Map.hpp"
 #include "Vector2.hpp"
 
+/**
+ * Rotation and translation representing a movement
+ */
 class Motion {
    public:
     Vector2 pos_diff;
@@ -20,16 +23,21 @@ class Motion {
     Motion(const Motion& m) : pos_diff(m.pos_diff), angle_diff(m.angle_diff) {}
 };
 
+/**
+ * Measure of a simulated 360° lidar
+ */
 class LidarMeasure {
    public:
     double angle;
     double distance;
     Vector2 point;
 
-    LidarMeasure(double angle, double distance, const Vector2& point)
-        : angle(angle), distance(distance), point(point) {}
+    LidarMeasure(double angle, double distance, const Vector2& point) : angle(angle), distance(distance), point(point) {}
 };
 
+/**
+ * Simulated robot
+ */
 class Robot {
    public:
     Vector2 pos;
@@ -43,15 +51,7 @@ class Robot {
     Vector2 last_pos;
     double last_angle;
 
-    Robot()
-        : pos(Vector2(100, 100)),
-          angle(0),
-          radius(20),
-          linear_speed(ROBOT_LINEAR_SPEED),
-          angular_speed(ROBOT_ANGULAR_SPEED),
-          next_lidar_angle(0),
-          last_pos(pos),
-          last_angle(angle) {}
+    Robot() : pos(Vector2(100, 100)), angle(0), radius(20), linear_speed(ROBOT_LINEAR_SPEED), angular_speed(ROBOT_ANGULAR_SPEED), next_lidar_angle(0), last_pos(pos), last_angle(angle) {}
 
     Vector2 direction() const {
         return Vector2(cos(angle), sin(angle));
@@ -86,8 +86,7 @@ class Robot {
                 double distance = (pos - li.p).norm();
                 if (distance <= min_dist) {
                     min_dist = distance + std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine);
-                    min_point = li.p + Vector2(std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine),
-                                               std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine));
+                    min_point = li.p + Vector2(std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine), std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine));
                 }
             }
         }
@@ -97,9 +96,9 @@ class Robot {
             if (li.exists) {
                 double distance = (pos - li.p).norm();
                 if (distance <= min_dist) {
-                    min_dist = distance + std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine);;
-                    min_point = li.p + Vector2(std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine),
-                                               std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine));
+                    min_dist = distance + std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine);
+                    ;
+                    min_point = li.p + Vector2(std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine), std::normal_distribution<double>(0, ERROR_LASER_DISTANCE)(random_engine));
                 }
             }
         }

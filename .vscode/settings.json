@@ -58,9 +58,9 @@
         "xtree": "cpp"
     },
     "C_Cpp.default.includePath": [
-        "${workspaceFolder}/SDL2-vc/include"
+        "${workspaceFolder}/libraries/SFML-vc/include"
     ],
     "C_Cpp.clang_format_fallbackStyle": "Google",
-    "C_Cpp.clang_format_style": "{BasedOnStyle: Google, IndentWidth: 4, AllowShortFunctionsOnASingleLine: Empty, ColumnLimit: 120}",
+    "C_Cpp.clang_format_style": "{BasedOnStyle: Google, IndentWidth: 4, AllowShortFunctionsOnASingleLine: Empty, ColumnLimit: 200}",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
 }

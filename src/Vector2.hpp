@@ -3,6 +3,9 @@
 #include <cmath>
 #include <iostream>
 
+/**
+ * Vector in 2-dimensional space
+ */
 class Vector2 {
    public:
     double x;

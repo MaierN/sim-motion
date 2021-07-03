@@ -10,6 +10,9 @@
 #include "Vector2.hpp"
 #include "config.h"
 
+/**
+ * Particle for the Monte Carlo simulation representing a potential position for the robot
+ */
 class Particle {
    public:
     Vector2 pos;
@@ -17,13 +20,11 @@ class Particle {
     double weight;
 
     Particle() : weight(1) {
-        pos = Vector2(std::normal_distribution<double>(100, ERROR_PARTICLE_INITIAL_POS)(random_engine),
-                      std::normal_distribution<double>(100, ERROR_PARTICLE_INITIAL_POS)(random_engine));
+        pos = Vector2(std::normal_distribution<double>(100, ERROR_PARTICLE_INITIAL_POS)(random_engine), std::normal_distribution<double>(100, ERROR_PARTICLE_INITIAL_POS)(random_engine));
         angle = std::uniform_real_distribution<double>(0, 2 * M_PI)(random_engine);
     }
     Particle(const Particle& p) : pos(p.pos), angle(p.angle), weight(p.weight) {
-        pos += Vector2(std::normal_distribution<double>(0, OFFSET_PARTICLE_RESAMPLE_POS)(random_engine),
-                       std::normal_distribution<double>(0, OFFSET_PARTICLE_RESAMPLE_POS)(random_engine));
+        pos += Vector2(std::normal_distribution<double>(0, OFFSET_PARTICLE_RESAMPLE_POS)(random_engine), std::normal_distribution<double>(0, OFFSET_PARTICLE_RESAMPLE_POS)(random_engine));
         angle += std::normal_distribution<double>(0, OFFSET_PARTICLE_RESAMPLE_ANGLE)(random_engine);
     }
 
