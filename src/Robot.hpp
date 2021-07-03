@@ -38,10 +38,6 @@ class Robot {
     double linear_speed;
     double angular_speed;
 
-    std::vector<double> speeds_center;
-    std::vector<double> omega;
-    std::vector<double> angles;
-
     double next_lidar_angle;
 
     Vector2 last_pos;
@@ -53,9 +49,6 @@ class Robot {
           radius(20),
           linear_speed(ROBOT_LINEAR_SPEED),
           angular_speed(ROBOT_ANGULAR_SPEED),
-          speeds_center(),
-          omega(),
-          angles(),
           next_lidar_angle(0),
           last_pos(pos),
           last_angle(angle) {}

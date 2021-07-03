@@ -26,18 +26,21 @@ const double FILTER_MEASURES_CLOSE_TO_WALL_DISTANCE = 10;
 
 const double LASER_RANGE = 10000;
 
-const double OFFSET_PARTICLE_RESAMPLE_POS = 1;
-const double OFFSET_PARTICLE_RESAMPLE_ANGLE = 0.005;
-
 #ifndef SANITY_CHECK
-    const double ERROR_ESTIMATED_POS = 0.5;
-    const double ERROR_ESTIMATED_ANGLE = 0.01;
+    const double OFFSET_PARTICLE_RESAMPLE_POS = 1;
+    const double OFFSET_PARTICLE_RESAMPLE_ANGLE = 0.005;
+
+    const double ERROR_ESTIMATED_POS = 0.1;
+    const double ERROR_ESTIMATED_ANGLE = 0.005;
 
     const double ERROR_LASER_DISTANCE = 4;
     const double ERROR_LASER_ANGLE = 0.02;
 
     const double ERROR_PARTICLE_INITIAL_POS = 20;
 #else
+    const double OFFSET_PARTICLE_RESAMPLE_POS = 0.0000001;
+    const double OFFSET_PARTICLE_RESAMPLE_ANGLE = 0.0000001;
+
     const double ERROR_ESTIMATED_POS = 0.0000001;
     const double ERROR_ESTIMATED_ANGLE = 0.0000001;
 
